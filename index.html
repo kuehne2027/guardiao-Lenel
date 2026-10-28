@@ -1,0 +1,677 @@
+<!doctype html><html lang="pt-BR"><head>
+<!--
+  Controle Lenel — KN Cordovil
+  Idealização e desenvolvimento: Isis Costa de Mello
+  © 2026 Isis Costa de Mello
+-->
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="author" content="Isis Costa de Mello">
+<title>Controle Lenel · KN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<script>try{if(localStorage.getItem("kn-painel-tema")==="claro")document.documentElement.setAttribute("data-tema","claro")}catch(e){}</script>
+<style>
+/* Mesmo visual do Painel KN (Atribuições): nav fixa translúcida, abas em pílula, cartões de vidro em grade, fundo com manchas suaves */
+:root{
+  --bg:#07090d; --ink:#eef2f5; --muted:#8c97a3; --line:rgba(255,255,255,.09); --glass:rgba(22,27,34,.55);
+  --accent:#4cc3ff; --amber:#ffb547; --red:#ff6b6e; --green:#3ddc97;
+  --wash:rgba(255,255,255,.045); --sep:rgba(255,255,255,.06); --line2:rgba(255,255,255,.25); --ph:rgba(255,255,255,.22);
+  --navbg:rgba(7,9,13,.72); --overlay:rgba(3,5,8,.72); --modal:rgba(14,18,24,.97); --on-accent:#04121b; --pill:#eef2f5; --on-pill:#000;
+  --grain:rgba(255,255,255,.035); --shadow:none; --a1:.10; --a2:.16; --a3:.3;
+  --f-display:'Unbounded',system-ui,sans-serif; --f-sans:'Onest',system-ui,sans-serif; --f-mono:'JetBrains Mono',ui-monospace,monospace;
+  color-scheme:dark;
+}
+html[data-tema="claro"]{
+  --bg:#f4f8fc; --ink:#082b4a; --muted:#647e95; --line:#d7e5f1; --glass:#ffffff;
+  --accent:#0b7fe8; --amber:#b45f06; --red:#d33b40; --green:#128a58;
+  --wash:rgba(8,43,74,.04); --sep:rgba(8,43,74,.08); --line2:rgba(8,43,74,.28); --ph:rgba(8,43,74,.35);
+  --navbg:rgba(255,255,255,.88); --overlay:rgba(8,43,74,.35); --modal:#ffffff; --on-accent:#ffffff; --pill:#082b4a; --on-pill:#ffffff;
+  --grain:rgba(8,43,74,.05); --shadow:0 10px 32px rgba(28,73,111,.07); --a1:.07; --a2:.07; --a3:.08;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg);color:var(--ink);transition:background-color .25s ease}
+body{font-family:var(--f-sans);font-size:14px;line-height:1.45;min-height:100%;overflow-x:hidden;margin:0;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;color:inherit}
+input,select,textarea{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+select option{background:var(--modal);color:var(--ink)}
+.aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.aurora i{position:absolute;border-radius:50%}
+.aurora i:nth-child(1){width:46vw;height:46vw;left:-12vw;top:-14vw;background:#0e6d9c;opacity:var(--a1)}
+.aurora i:nth-child(2){width:38vw;height:38vw;right:-10vw;top:18vh;background:#b86b12;opacity:var(--a2)}
+.aurora i:nth-child(3){width:50vw;height:40vw;left:30vw;bottom:-22vw;background:#123f7a;opacity:var(--a3)}
+.grain{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(var(--grain) 1px,transparent 1px);background-size:22px 22px}
+.glass{background:var(--glass);border:1px solid var(--line);box-shadow:var(--shadow)}
+.tnum{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--f-mono)}
+.display{font-family:var(--f-display);letter-spacing:-.02em}
+.muted{color:var(--muted)}
+.noscroll::-webkit-scrollbar{display:none}.noscroll{scrollbar-width:none}
+
+/* ===== Nav (igual Atribuições) ===== */
+header.nav{position:fixed;top:0;left:0;right:0;z-index:50;padding-top:env(safe-area-inset-top,0px)}
+header.nav .bar{background:var(--navbg);border-bottom:1px solid var(--line);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3)}
+header.nav nav{max-width:1280px;margin:0 auto;padding:0 16px;height:56px;display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.brand .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+.brand .nm{font-family:var(--f-display);font-size:13px;letter-spacing:-.01em}
+.brand .nm span{color:var(--muted);font-family:var(--f-sans);font-weight:500}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;color:#fff;background:#16a34a;white-space:nowrap;flex-shrink:0;border:0}
+.live.off{background:#dc2626}.live.wait{background:#64748b}.live.local{background:#64748b}
+.tabs{margin-left:auto;display:flex;gap:4px;overflow-x:auto;padding:4px;border-radius:999px;background:var(--wash)}
+.tab{position:relative;flex-shrink:0;border:0;background:transparent;padding:6px 16px;border-radius:999px;font-size:13px;font-weight:500;color:var(--muted);transition:color .2s,background-color .25s}
+.tab:hover{color:var(--ink)}
+.tab.on{background:var(--pill);color:var(--on-pill)}
+.tab .cnt{font-family:var(--f-mono);font-size:10.5px;margin-left:6px;padding:0 6px;border-radius:999px;background:var(--red);color:#fff}
+.rbtn{flex-shrink:0;width:36px;height:36px;border-radius:50%;border:0;background:var(--wash);color:var(--muted)}
+.rbtn:hover{color:var(--ink)}
+
+/* ===== Conteúdo ===== */
+main{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:96px 16px 64px}
+.grid12{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}
+.c8{grid-column:span 8}.c4{grid-column:span 4}.c12{grid-column:span 12}.c7{grid-column:span 7}.c5{grid-column:span 5}.c6{grid-column:span 6}
+.card{border-radius:24px;padding:24px;min-width:0}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.card-h h2,.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);font-weight:600;margin:0}
+.hero{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin:8px 0 24px}
+.hero h1{font-family:var(--f-display);font-weight:500;font-size:72px;letter-spacing:-.03em;line-height:1;margin:0}
+.hero .t1{font-size:15px}.hero .t2{font-size:13px}
+.minis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.mini{min-width:0;text-align:left;border:0;background:transparent;padding:0;cursor:pointer}
+.mini .v{font-family:var(--f-display);font-size:30px;letter-spacing:-.02em}
+.mini .l{color:var(--muted);font-size:12px;margin-top:4px}
+.mini .s{font-size:11px;margin-top:2px}
+.mini.on .v{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:6px}
+.prog{height:6px;border-radius:999px;background:var(--wash);overflow:hidden;margin-top:22px}
+.prog i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--green));transition:width .6s cubic-bezier(.22,1,.36,1)}
+
+.campo{width:100%;background:var(--wash);border:1px solid var(--line);border-radius:16px;padding:10px 14px;font-size:14px;outline:none;transition:border-color .2s;color:var(--ink)}
+.campo:focus{border-color:var(--accent)}
+.campo::placeholder{color:var(--ph)}
+.campo.big{padding:12px 16px;font-family:var(--f-display);font-size:18px}
+textarea.campo{resize:vertical;min-height:100px;font-family:var(--f-mono);font-size:13px}
+label.f{display:grid;gap:4px;font-size:11px;color:var(--muted)}
+.pills{display:flex;gap:4px;flex-wrap:wrap;padding:4px;border-radius:999px;background:var(--wash);width:fit-content;max-width:100%}
+.pill{border:0;background:transparent;color:var(--muted);padding:6px 14px;border-radius:999px;font-size:13px;font-weight:500;white-space:nowrap}
+.pill:hover{color:var(--ink)}
+.pill.on{background:var(--pill);color:var(--on-pill)}
+.pill .n{font-family:var(--f-mono);font-size:11px;opacity:.65;margin-left:6px}
+
+.btnp{font-size:13px;font-weight:600;padding:8px 16px;border-radius:999px;border:0;background:var(--accent);color:var(--on-accent);white-space:nowrap}
+.btnp:disabled{opacity:.4;cursor:not-allowed}
+.btnp.ok{background:var(--green);color:#04150d}.btnp.warn{background:var(--amber);color:#1d1100}.btnp.red{background:var(--red);color:#fff}
+html[data-tema="claro"] .btnp.ok,html[data-tema="claro"] .btnp.warn{color:#fff}
+.btnp.lg{padding:14px 18px;font-size:15px;border-radius:18px;width:100%}
+.btns{font-size:13px;font-weight:500;padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);white-space:nowrap}
+.btns:hover{border-color:var(--line2)}
+.btns.lg{padding:14px 18px;font-size:15px;border-radius:18px;width:100%}
+.bm{font-size:12px;font-weight:500;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);transition:color .2s,border-color .2s;white-space:nowrap}
+.bm:hover{color:var(--ink);border-color:var(--line2)}
+.bm.ok{color:var(--green);border-color:color-mix(in srgb,var(--green) 40%,transparent)}
+.bm.ac{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,transparent)}
+.bm.am{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 40%,transparent)}
+.bm.ok:hover{background:color-mix(in srgb,var(--green) 12%,transparent)}.bm.ac:hover{background:color-mix(in srgb,var(--accent) 12%,transparent)}.bm.am:hover{background:color-mix(in srgb,var(--amber) 12%,transparent)}
+.pl{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap;--t:var(--muted);color:var(--t);background:color-mix(in srgb,var(--t) 15%,transparent)}
+.t-troca{--t:#b48cff}.t-aguardando{--t:var(--amber)}.t-entregue{--t:var(--green)}.t-retirado{--t:var(--accent)}.t-irr{--t:var(--red)}.t-reinc{--t:#c9a227}
+
+/* linhas no estilo "Pessoa" das Atribuições */
+.grupo{border-radius:16px;border:1px solid var(--line);background:var(--wash);overflow:hidden;margin-bottom:8px}
+.grupo>button.gh{width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;text-align:left;border:0;background:transparent}
+.grupo>button.gh:hover{background:var(--wash)}
+.seta{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;font-size:10px;flex-shrink:0;background:color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent);transition:transform .25s}
+.grupo.open .seta{transform:rotate(90deg)}
+.gh .gt{min-width:0;flex:1}.gh .gt b{display:block;font-family:var(--f-display);font-weight:500;font-size:16px;letter-spacing:-.02em}.gh .gt small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.gq{font-family:var(--f-mono);font-size:12px;padding:4px 10px;border-radius:999px;flex-shrink:0;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent)}
+.gq.red{background:color-mix(in srgb,var(--red) 14%,transparent);color:var(--red)}
+.gb{padding:0 16px 12px;display:none}.grupo.open .gb{display:block}
+.pes{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--sep);flex-wrap:wrap}
+.pes:first-child{border-top:0}
+.pes .ix{font-family:var(--f-mono);font-size:11px;color:var(--muted);width:24px;flex-shrink:0}
+.pes .pn{min-width:0;flex:1}
+.pes .pn b{display:block;font-size:14px;font-weight:500}
+.pes .pn small{display:block;font-family:var(--f-mono);font-size:12px;color:var(--muted);margin-top:2px}
+.pes .acts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.pes.flag .pn b{color:var(--red)}
+.box{border-radius:16px;padding:14px;border:1px solid;margin:8px 0}
+.box.ac{background:color-mix(in srgb,var(--accent) 6%,transparent);border-color:color-mix(in srgb,var(--accent) 25%,transparent)}
+.box.red{background:color-mix(in srgb,var(--red) 7%,transparent);border-color:color-mix(in srgb,var(--red) 30%,transparent)}
+.box.ok{background:color-mix(in srgb,var(--green) 7%,transparent);border-color:color-mix(in srgb,var(--green) 30%,transparent)}
+.alerta{border-radius:16px;padding:12px 16px;font-size:14px;margin-bottom:16px;background:color-mix(in srgb,var(--red) 10%,transparent);color:var(--red)}
+.vazio{font-size:13px;color:var(--muted);padding:8px 0}
+.sugg{display:flex;flex-direction:column;gap:6px;margin-top:10px;max-height:300px;overflow:auto}
+.sugg button{display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;border:1px solid var(--line);background:var(--wash);border-radius:16px;padding:10px 14px}
+.sugg button:hover{border-color:var(--line2)}
+.feed .ev{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--sep)}
+.feed .ev:first-child{border-top:0}
+.ic{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;flex-shrink:0;font-size:12px;font-weight:700;--ic:var(--accent);color:var(--ic);background:color-mix(in srgb,var(--ic) 15%,transparent)}
+.tl{border-left:2px solid var(--line);margin-left:6px;padding-left:16px}
+.tl div{position:relative;padding:3px 0 10px}
+.tl div::before{content:"";position:absolute;left:-21px;top:9px;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sb{justify-content:space-between}
+.sk{background:linear-gradient(90deg,rgba(255,255,255,.04) 0%,rgba(255,255,255,.1) 50%,rgba(255,255,255,.04) 100%);background-size:200% 100%;animation:sh 1.2s linear infinite;border-radius:10px}
+@keyframes sh{to{background-position:-200% 0}}
+.view{display:none}.view.on{display:block;animation:entra .22s ease}
+@keyframes entra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* modal ⚙ */
+.modal-bg{position:fixed;inset:0;z-index:200;background:var(--overlay);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:flex-start;justify-content:center;padding:72px 16px 24px;overflow:auto;animation:entra .2s ease}
+.modal{width:min(880px,100%);background:var(--modal);border:1px solid var(--line);border-radius:28px;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.modal h3{font-family:var(--f-display);font-weight:500;font-size:20px;letter-spacing:-.02em;margin:0}
+.secm{border:1px solid var(--line);border-radius:20px;padding:16px;background:var(--wash)}
+.secm h4{font-family:var(--f-display);font-weight:500;font-size:13px;margin:0 0 4px}
+.secm p{font-size:12px;color:var(--muted);margin:0 0 12px}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:300;padding:10px 16px;border-radius:16px;font-size:14px;font-weight:500;max-width:calc(100% - 32px);background:var(--ink);color:var(--bg);box-shadow:0 8px 30px rgba(0,0,0,.4);animation:sobe .3s cubic-bezier(.2,.9,.3,1.2)}
+.toast.err{background:var(--red);color:#fff}
+@keyframes sobe{from{opacity:0;transform:translate(-50%,20px)}to{opacity:1;transform:translate(-50%,0)}}
+.sig{text-align:center;font-size:11px;color:var(--muted);margin-top:32px}
+
+@media (max-width:900px){.c8,.c4,.c7,.c5,.c6{grid-column:span 12}}
+@media (max-width:640px){
+  .brand .nm span,.live{display:none}
+  .tab{padding:6px 10px;font-size:12.5px}
+  .hero h1{font-size:48px}
+  .minis{grid-template-columns:1fr 1fr}
+  .mini .v{font-size:24px}
+  .card{padding:20px}
+  .fg2{grid-template-columns:1fr}
+  .pes .acts{padding-left:36px}
+  .hide-m{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ===== v2: por horário ===== */
+.hcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.hcard{border-radius:24px;padding:20px;text-align:left;cursor:pointer;transition:border-color .2s,transform .2s;width:100%;color:var(--ink)}
+.hcard:hover{border-color:var(--line2);transform:translateY(-2px)}
+.hcard .ht{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.hcard .ht b{font-family:var(--f-display);font-weight:500;font-size:28px;letter-spacing:-.03em}
+.hcard .ht small{font-size:12px;color:var(--muted)}
+.hstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
+.hstats div b{display:block;font-family:var(--f-display);font-weight:500;font-size:20px}
+.hstats div small{display:block;font-size:10.5px;color:var(--muted);line-height:1.25;margin-top:2px}
+.hcoord{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.hcoord-t{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.hc-l{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;padding:3px 0}
+.hc-l span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hc-l b{font-family:var(--f-display);font-weight:500;font-size:14px;white-space:nowrap}
+.hc-l b small{font-family:var(--f-body,inherit);font-size:11px;color:var(--muted);font-weight:400}
+.ircard{border-radius:20px;padding:18px 20px;margin-bottom:14px}
+.irtop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.irtop h3{margin:2px 0 0;font-family:var(--f-display);font-weight:500;font-size:20px}
+.irbloco{margin-top:14px}.irtit{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;margin-bottom:6px}
+.irol{list-style:none;margin:0;padding:0}
+.irol li{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13.5px;flex-wrap:wrap}
+.irol li b{font-weight:500}.irol li .bm{margin-left:auto;padding:3px 10px;font-size:11px}
+.irol li.irh{border:0;padding:10px 0 2px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.irn{color:var(--muted);min-width:26px;font-size:12px}
+.pill .cnt{font-family:var(--f-mono);font-size:11px;margin-left:4px;padding:1px 7px;border-radius:999px;background:color-mix(in srgb,var(--red) 18%,transparent);color:var(--red)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:14px}
+.kpi{border:0;background:transparent;text-align:left;padding:0;cursor:pointer;min-width:0}
+.kpi b{display:block;font-family:var(--f-display);font-weight:500;font-size:28px;letter-spacing:-.02em}
+.kpi span{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.kpi small{display:block;font-size:10.5px;margin-top:1px}
+.kpi.on b{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:6px}
+.pes .tg{width:26px;height:26px;border-radius:8px;border:0;display:grid;place-items:center;font-size:10px;flex-shrink:0;background:color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent);transition:transform .25s}
+.pes.open .tg{transform:rotate(90deg)}
+.pes .tlx{flex-basis:100%;display:none;padding:6px 0 4px 38px}
+.pes.open .tlx{display:block}
+.t-nao{--t:var(--amber)}.t-dentro{--t:var(--green)}.t-fora{--t:var(--accent)}.t-embora{--t:#7fb89d}.t-falta{--t:var(--red)}.t-at{--t:var(--muted)}.t-sem{--t:var(--muted)}.t-late{--t:var(--red)}
+.tl .e1::before{background:var(--green);box-shadow:0 0 10px var(--green)}
+.tl .sa::before{background:var(--accent)}
+.tl .en::before{background:var(--green)}
+.tl .sf::before{background:#7fb89d;box-shadow:none}
+.bipbox{border-radius:18px;padding:14px;margin-top:10px;border:1px solid var(--line);background:var(--wash);display:none}
+.bipbox.on{display:block;animation:entra .2s ease}
+.bipbox b.big{font-family:var(--f-display);font-weight:500;font-size:22px;display:block}
+@media (max-width:640px){.hstats{grid-template-columns:repeat(4,minmax(0,1fr))}.hstats div b{font-size:17px}.pes .tlx{padding-left:12px}}
+</style>
+</head><body>
+<div class="aurora"><i></i><i></i><i></i></div>
+<div class="grain"></div>
+
+<header class="nav"><div class="bar"><nav>
+  <div class="brand"><span class="dot"></span><span class="nm">KN<span> · Controle Lenel</span></span></div>
+  <button type="button" class="live wait" id="knLive" title="Sincronizar agora">● conectando…</button>
+  <div class="tabs noscroll" id="tabs" role="tablist"></div>
+  <button type="button" class="rbtn" id="temaBtn" title="Versão clara">☀</button>
+  <button type="button" class="rbtn" id="cfgBtn" title="Configurações">⚙</button>
+</nav></div></header>
+
+<main>
+  <div class="alerta" id="semNuvem" hidden>Sem conexão com a nuvem. Confira a internet. O controle volta a atualizar quando a conexão voltar.</div>
+
+  <!-- VISÃO GERAL -->
+  <section class="view on" id="v-geral">
+    <div class="grid12">
+      <div class="glass card c8">
+        <div class="eyebrow" id="gEyebrow">KN Cordovil · Controle Lenel</div>
+        <div class="hero">
+          <h1 class="tnum" id="gN">0</h1>
+          <div style="padding-bottom:4px"><div class="t1">escalados hoje (sem contar folgas)</div><div class="t2"><span class="muted" id="gSub"></span> <span id="gSit"></span></div></div>
+        </div>
+        <div class="kpis" id="gKpis"></div>
+        <div class="prog"><i id="gBar" style="width:0"></i></div>
+      </div>
+      <div class="glass card c4">
+        <div class="card-h"><h2>Bipar / buscar crachá</h2></div>
+        <input class="campo big" id="bip" placeholder="Groot ID ou nome" autocomplete="off">
+        <div class="muted" style="font-size:12px;margin-top:8px">Bipe e aperte Enter: registra ENTRADA ou SAÍDA. Digitando o nome, mostra onde a pessoa está.</div>
+        <div class="row" style="margin-top:10px"><input type="date" class="campo" id="dt" style="width:auto;padding:6px 12px;border-radius:999px"></div>
+        <div class="bipbox" id="bipRes"></div>
+      </div>
+      <div class="c12"><div class="hcards" id="hCards"></div></div>
+    </div>
+  </section>
+
+  <!-- POR HORÁRIO (uma tela que muda conforme a aba) -->
+  <section class="view" id="v-hora">
+    <div class="grid12">
+      <div class="glass card c12">
+        <div class="card-h"><h2 id="hTit">Horário</h2><span class="muted" style="font-size:12px" id="hInfo"></span></div>
+        <div class="kpis" id="hKpis"></div>
+        <div class="prog"><i id="hBar" style="width:0"></i></div>
+      </div>
+      <div class="glass card c12">
+        <div class="card-h">
+          <h2>Colaboradores por coordenador</h2>
+          <div class="row"><input class="campo" id="hBusca" type="search" placeholder="Buscar nome ou Groot ID" style="width:220px;padding:7px 12px;border-radius:999px" autocomplete="off">
+          <button class="bm" id="hAbrir">Abrir todos</button><button class="bm" id="hFechar">Fechar todos</button></div>
+        </div>
+        <div class="pills" id="hFiltro" style="margin-bottom:12px"></div>
+        <div id="hLista"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUEM NÃO CUMPRIU -->
+  <section class="view" id="v-irreg">
+    <div class="grid12">
+      <div class="glass card c12">
+        <div class="card-h"><h2>Quem não está cumprindo a regra do cartão</h2><span class="muted" style="font-size:12px">Regra: deixar o cartão ao entrar · pegar só para sair do setor · devolver ao voltar</span></div>
+        <div id="irrList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HISTÓRICO -->
+  <section class="view" id="v-hist">
+    <div class="grid12">
+      <div class="glass card c7">
+        <div class="card-h"><h2>Histórico por colaborador</h2></div>
+        <input class="campo big" id="hsBusca" type="search" placeholder="Nome ou Groot ID" autocomplete="off">
+        <div class="sugg" id="hsSugg"></div>
+        <div id="hsOut" style="margin-top:16px"></div>
+      </div>
+      <div class="glass card c5">
+        <div class="card-h"><h2>Relatório do dia</h2></div>
+        <p class="muted" style="font-size:13px;margin:0 0 12px">Planilha com cada pessoa (horário, coordenador, controle de cartão, saídas, entradas, situação) e todas as entradas e saídas do dia.</p>
+        <div class="row"><button class="btnp" id="expPes">Baixar por pessoa (CSV)</button><button class="btns" id="expMov">Entradas e saídas (CSV)</button></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="sig">Desenvolvido por Isis Costa de Mello · © 2026</div>
+</main>
+
+<script>
+(function(){
+"use strict";
+/* ================= utilitários ================= */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>(s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=s=>String(s??"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim();
+const uid=()=>(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2));
+const pad=n=>String(n).padStart(2,"0");
+const hoje=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
+const hhmm=iso=>{if(!iso)return"—";const d=new Date(iso);return pad(d.getHours())+":"+pad(d.getMinutes())};
+const minDesde=iso=>iso?Math.max(0,Math.round((Date.now()-new Date(iso))/60000)):0;
+const fmtMin=m=>m<60?m+" min":Math.floor(m/60)+"h"+pad(m%60);
+const brData=s=>{const[a,m,d]=s.split("-");return d+"/"+m+"/"+a};
+function toast(msg,tipo){const el=document.createElement('div');el.className='toast '+(tipo||'');el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),3000)}
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+const cfg=Object.assign({guard:"",ent:40,ret:30},LS.get("lenel_cfg2",{}));
+if(!LS.get("lenel_ent40",0)){cfg.ent=40;LS.set("lenel_ent40",1);LS.set("lenel_cfg2",{guard:cfg.guard,ent:40,ret:cfg.ret})}
+cfg.url="https://gklfdfmmpfgfqfgvitlr.supabase.co";cfg.key="sb_publishable__D8R3fOSoaBXihVxa4hr2A_55tk3Vyn";
+const save=()=>LS.set("lenel_cfg2",{guard:cfg.guard,ent:cfg.ent,ret:cfg.ret});
+const S={date:hoje(),view:"geral",hora:"05",filtro:"",busca:"",colabs:[],movs:[],escala:[],base:LS.get("lenel_base2",{}),pessoas:[]};
+const abertosCoord=new Set(), abertosPes=new Set();
+
+/* ================= banco (Supabase) ================= */
+const sb={
+  h(extra){return Object.assign({apikey:cfg.key,Authorization:"Bearer "+cfg.key,"Content-Type":"application/json"},extra||{})},
+  async q(path,opt){const r=await fetch(cfg.url+"/rest/v1/"+path,Object.assign({headers:this.h()},opt||{}));
+    if(!r.ok)throw new Error((await r.text())||r.status);const t=await r.text();return t?JSON.parse(t):null},
+  async load(date){
+    const[colabs,movs,escala]=await Promise.all([
+      this.q("lenel_colaboradores_dia?data=eq."+date+"&select=*&limit=5000"),
+      this.q("lenel_movimentacoes?data=eq."+date+"&select=*&order=hora.asc&limit=10000"),
+      this.q("lenel_escala_dia?data=eq."+date+"&select=groot_id,nome,coordenador,turno,escala,status_hc&limit=5000").catch(()=>[])]);
+    return{colabs:colabs||[],movs:movs||[],escala:escala||[]}},
+  async upsertColab(c,ignore){await this.q("lenel_colaboradores_dia?on_conflict=id",{method:"POST",headers:this.h({Prefer:"resolution="+(ignore?"ignore":"merge")+"-duplicates,return=minimal"}),body:JSON.stringify([c])})},
+  async addMov(m){await this.q("lenel_movimentacoes",{method:"POST",headers:this.h({Prefer:"return=minimal"}),body:JSON.stringify(m)})},
+  async hist(g){const e=encodeURIComponent(g);const[esc_,movs]=await Promise.all([this.q("lenel_escala_dia?groot_id=eq."+e+"&select=data,status_hc,escala&order=data.desc&limit=60"),this.q("lenel_movimentacoes?groot_id=eq."+e+"&select=*&order=hora.asc&limit=1000")]);return{escala:esc_||[],movs:movs||[]}}
+};
+let baseOk=false;
+async function carregarBase(){if(baseOk)return;
+  try{const r=await sb.q("kn_presenca_colaboradores?select=groot_id,nome,coordenador,horario&limit=5000");const m={};
+    (r||[]).forEach(x=>{const g=String(x.groot_id||"").trim();if(g)m[g]={nome:String(x.nome||"").trim().toUpperCase(),coordenador:String(x.coordenador||"").trim().toUpperCase(),horario:String(x.horario||"")}});
+    if(Object.keys(m).length){S.base=m;LS.set("lenel_base2",m)}baseOk=true}catch(e){}}
+
+function marcarConexao(est){const el=$('#knLive');const h=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  el.className='live'+(est==='on'?'':' off');el.textContent=est==='on'?'● ao vivo · '+h:'● sem conexão';$('#semNuvem').hidden=est==='on'}
+
+/* ================= horário da escala ================= */
+const ehFolga=st=>/^(FO|FOLGA|FE|FÉRIAS|FERIAS|DSR)$/.test(String(st||"").toUpperCase());
+/* "SVC - B3 - 05H / 09H / 10H / 14H48" → entrada "05", saída "14:48" */
+function lerEscala(txt){const t=[...String(txt||"").toUpperCase().matchAll(/(\d{1,2})\s*H\s*(\d{2})?/g)].map(m=>({h:+m[1],m:m[2]?+m[2]:0}));
+  if(!t.length)return null;const a=t[0],b=t[t.length-1];return{ent:pad(a.h),entMin:a.h*60+a.m,sai:pad(b.h)+":"+pad(b.m),saiMin:b.h*60+b.m}}
+function lerHorario(h){const m=String(h||"").match(/(\d{1,2}):(\d{2})/);if(!m)return null;return{ent:pad(+m[1]),entMin:+m[1]*60+ +m[2],sai:"",saiMin:null}}
+const minDoDia=iso=>{const d=new Date(iso);return d.getHours()*60+d.getMinutes()};
+
+/* ================= monta a lista de pessoas do dia ================= */
+function montar(){
+  const P={};
+  S.escala.forEach(e=>{const g=String(e.groot_id);const h=lerEscala(e.escala);
+    P[g]={g,nome:e.nome||"",coord:e.coordenador||"",escala:e.escala||"",hc:String(e.status_hc||"").toUpperCase(),folga:ehFolga(e.status_hc),h,c:null,movs:[]}});
+  S.colabs.forEach(c=>{const g=String(c.groot_id);if(!P[g]){const b=S.base[g]||{};
+      P[g]={g,nome:c.nome||b.nome||"",coord:c.coordenador||b.coordenador||"",escala:"",hc:String(c.status_hc||"").toUpperCase(),folga:ehFolga(c.status_hc),h:lerHorario(b.horario),c:null,movs:[]}}
+    P[g].c=c;if(!P[g].nome||/^GROOT /.test(P[g].nome))P[g].nome=c.nome||P[g].nome;if(!P[g].coord)P[g].coord=c.coordenador||""});
+  S.movs.forEach(m=>{const p=P[String(m.groot_id)];if(p)p.movs.push(m)});
+  S.pessoas=Object.values(P).map(p=>Object.assign(p,{hora:p.h?p.h.ent:"—"},analisar(p))).filter(p=>!(p.folga&&!p.movs.length));
+}
+/* situação de cada pessoa, pelas regras do cartão */
+function analisar(p){
+  const hj=S.date===hoje(),agora=new Date();
+  const ms=p.movs.slice().sort((a,b)=>a.hora<b.hora?-1:1);
+  const ent=ms.filter(m=>m.tipo==="entrega"||m.tipo==="devolucao");
+  const sai=ms.filter(m=>m.tipo==="retirada");
+  const saiMin=p.h&&p.h.saiMin!=null&&p.h.saiMin>p.h.entMin?p.h.saiMin:null;
+  const final=m=>saiMin!=null&&minDoDia(m.hora)>=saiMin;          // saída no horário de saída da escala = foi embora
+  const ult=ms[ms.length-1];
+  let st,txt,det="";
+  const primeira=ms.find(m=>m.tipo==="entrega")||ent[0];
+  if(!ms.length){
+    if(p.hc==="P")st="nao";else if(p.hc==="F")st="falta";else if(p.hc==="AT")st="at";else st="sem";
+  }else if(ult.tipo==="retirada"){st=final(ult)?"embora":"fora"}
+  else st="dentro";
+  const lim=p.h?p.h.entMin+cfg.ent:null;
+  const atrasado=st==="nao"&&(!hj||(lim!=null?(agora.getHours()*60+agora.getMinutes())>lim:true));
+  const foraMin=st==="fora"?(hj?minDesde(ult.hora):null):null;
+  const foraLonga=st==="fora"&&(!hj||foraMin>cfg.ret);
+  if(st==="nao")txt=atrasado?"NÃO deixou o cartão":"Aguardando entrada";
+  else if(st==="falta")txt="Falta (F)";else if(st==="at")txt="Atestado (AT)";else if(st==="sem")txt=p.hc?p.hc:"Sem marcação na Headcount";
+  else if(st==="dentro")txt="DENTRO · cartão com o guardião";
+  else if(st==="fora")txt="FORA desde "+hhmm(ult.hora)+(foraMin!=null?" · há "+fmtMin(foraMin):"");
+  else txt="Foi embora "+hhmm(ult.hora);
+  const saidasSvc=sai.filter(m=>!final(m)).length, retornos=ms.filter(m=>m.tipo==="devolucao").length;
+  const irr=[];
+  if(atrasado)irr.push({k:"nao",t:"Não deixou o cartão na entrada",d:(p.h?"Entrada "+p.h.ent+"h · ":"")+"tem P na Headcount e nenhum bipe"});
+  if(foraLonga)irr.push({k:"fora",t:"Pegou o cartão e não devolveu",d:"SAÍDA às "+hhmm(ult.hora)+(foraMin!=null?" · fora há "+fmtMin(foraMin):"")});
+  if(ms.length&&p.hc&&p.hc!=="P"&&!p.folga)irr.push({k:"semp",t:"Bipou sem presença (P) na Headcount",d:"Headcount está "+p.hc});
+  if(ms.length&&!p.hc&&!S.escala.find(e=>String(e.groot_id)===p.g))irr.push({k:"semp",t:"Bipou e não está na escala do dia",d:"Conferir cadastro/escala"});
+  const troca=p.folga&&ms.length>0;
+  return{st,txt,primeira:primeira?primeira.hora:null,saidasSvc,retornos,final:sai.filter(final).length,irr,troca,ms,finalFn:final,atrasado};
+}
+const estrela=s=>({nao:"t-nao",falta:"t-falta",at:"t-at",sem:"t-sem",dentro:"t-dentro",fora:"t-fora",embora:"t-embora"}[s]);
+const tagSt=p=>`<span class="pl ${p.atrasado||p.irr.some(i=>i.k==="fora")?"t-late":estrela(p.st)}">${esc(p.txt)}</span>${p.troca?` <span class="pl t-troca" title="Estava de folga na Headcount e veio trabalhar">Folga trocada</span>`:""}`;
+const proxima=p=>!p.ms.length?"entrega":p.ms[p.ms.length-1].tipo==="retirada"?"devolucao":"retirada";
+const nomeMov=(p,m)=>m.tipo==="retirada"?(p.finalFn(m)?"SAÍDA · foi embora":"SAÍDA"):m===p.ms.find(x=>x.tipo==="entrega")?"CONTROLE DE CARTÃO":"ENTRADA";
+const clsMov=(p,m)=>m.tipo==="retirada"?(p.finalFn(m)?"sf":"sa"):m===p.ms.find(x=>x.tipo==="entrega")?"e1":"en";
+
+/* ================= números por horário ================= */
+function horarios(){const s=new Set(S.pessoas.map(p=>p.hora));return [...s].sort((a,b)=>a==="—"?1:b==="—"?-1:+a-+b)}
+function numeros(lista){
+  const esc_=lista.filter(p=>!p.folga);
+  return{escalados:esc_.length,
+    presentes:esc_.filter(p=>p.hc==="P").length+lista.filter(p=>p.troca).length,   // P na Headcount + quem veio na folga
+    deixaram:lista.filter(p=>p.ms.some(m=>m.tipo==="entrega")).length,
+    nao:lista.filter(p=>p.atrasado).length,
+    aguard:lista.filter(p=>p.st==="nao"&&!p.atrasado).length,
+    dentro:lista.filter(p=>p.st==="dentro").length,
+    fora:lista.filter(p=>p.st==="fora").length,
+    saidas:lista.reduce((a,p)=>a+p.saidasSvc,0),
+    retornos:lista.reduce((a,p)=>a+p.retornos,0),
+    embora:lista.filter(p=>p.st==="embora").length,
+    faltas:esc_.filter(p=>p.hc==="F"||p.hc==="AT").length,
+    trocas:lista.filter(p=>p.troca).length,
+    irr:lista.filter(p=>p.irr.length).length}
+}
+/* não deixaram o cartão, por coordenador (para os cards de horário) */
+function porCoord(L){
+  const m={};
+  L.forEach(p=>{const c=p.coord||"Sem coordenador";m[c]=m[c]||{pres:0,nao:0};
+    if((!p.folga&&p.hc==="P")||p.troca)m[c].pres++;if(p.atrasado)m[c].nao++});
+  const ls=Object.entries(m).filter(([,v])=>v.pres||v.nao).sort((a,b)=>(b[1].nao-a[1].nao)||a[0].localeCompare(b[0]));
+  if(!ls.length)return"";
+  return`<div class="hcoord"><div class="hcoord-t">Não deixaram o cartão · por coordenador</div>${ls.map(([c,v])=>
+    `<div class="hc-l"><span>${esc(c)}</span><b class="tnum" style="color:${v.nao?"var(--red)":"var(--green)"}">${v.nao}<small> de ${v.pres}</small></b></div>`).join("")}</div>`}
+function saidaDe(h){const p=S.pessoas.find(x=>x.hora===h&&x.h&&x.h.sai);return p?p.h.sai:""}
+
+/* ================= telas ================= */
+function tabsHtml(){
+  const n=S.pessoas.filter(p=>p.irr.length).length;
+  return`<button type="button" class="tab ${S.view==="geral"?"on":""}" data-v="geral">Visão geral</button>`+
+    horarios().map(h=>`<button type="button" class="tab ${S.view==="hora"&&S.hora===h?"on":""}" data-v="hora" data-h="${h}">${h==="—"?"Sem horário":h+"h"}</button>`).join("")+
+    `<button type="button" class="tab ${S.view==="irreg"?"on":""}" data-v="irreg">Não cumpriram${n?`<span class="cnt">${n}</span>`:""}</button>`+
+    `<button type="button" class="tab ${S.view==="hist"?"on":""}" data-v="hist">Histórico</button>`}
+function render(){
+  montar();
+  $("#tabs").innerHTML=tabsHtml();
+  $$(".view").forEach(e=>e.classList.toggle("on",e.id==="v-"+S.view));
+  if(S.view==="geral")rGeral();else if(S.view==="hora")rHora();else if(S.view==="irreg")rIrreg();
+}
+function kpi(v,l,s,cor,f){return`<button type="button" class="kpi ${f&&S.filtro===f?"on":""}" ${f!=null?`data-f="${f}"`:""}><b class="tnum" style="color:${cor||"var(--ink)"}">${v}</b><span>${l}</span>${s?`<small style="color:${cor||"var(--muted)"}">${s}</small>`:""}</button>`}
+function rGeral(){
+  const N=numeros(S.pessoas);
+  $("#gEyebrow").textContent="KN Cordovil · "+brData(S.date);
+  $("#gN").textContent=N.escalados;
+  const pct=N.presentes?Math.round(N.deixaram/N.presentes*100):0;
+  $("#gSub").textContent=N.presentes+" com P · "+N.deixaram+" deixaram o cartão ·";
+  $("#gSit").textContent=N.nao?N.nao+" não deixaram":"todos os presentes deixaram";$("#gSit").style.color=N.nao?"var(--red)":"var(--green)";
+  $("#gBar").style.width=Math.min(100,pct)+"%";
+  $("#gKpis").innerHTML=[kpi(N.presentes,"Presentes","P + folga trocada","var(--ink)"),kpi(N.deixaram,"Controle de cartão","deixaram o cartão na entrada","var(--green)"),
+    kpi(N.nao,"Não deixaram","passou do horário",N.nao?"var(--red)":"var(--muted)"),kpi(N.fora,"Fora agora","com o cartão","var(--accent)"),
+    kpi(N.saidas,"Saídas","pegaram o cartão","var(--accent)"),kpi(N.retornos,"Entradas","devolveram ao voltar","var(--green)"),
+    kpi(N.embora,"Foram embora","saída no fim da escala","#7fb89d"),kpi(N.trocas,"Folga trocada","de FO e vieram","#b48cff")].join("");
+  $("#hCards").innerHTML=horarios().map(h=>{const L=S.pessoas.filter(p=>p.hora===h),n=numeros(L),pc=n.presentes?Math.round(n.deixaram/n.presentes*100):0,sa=saidaDe(h);
+    return`<button type="button" class="glass hcard" data-v="hora" data-h="${h}"><div class="ht"><b>${h==="—"?"Sem horário":h+"h"}</b><small>${sa?"entra "+h+":00 · sai "+sa:""}</small></div>
+      <div class="hstats">
+        <div><b class="tnum">${n.escalados}</b><small>escalados</small></div>
+        <div><b class="tnum">${n.presentes}</b><small>presentes</small></div>
+        <div><b class="tnum" style="color:var(--green)">${n.deixaram}</b><small>controle de cartão</small></div>
+        <div><b class="tnum" style="color:${n.nao?"var(--red)":"var(--muted)"}">${n.nao}</b><small>não deixaram</small></div>
+        <div><b class="tnum" style="color:var(--accent)">${n.saidas}</b><small>saídas</small></div>
+        <div><b class="tnum" style="color:var(--green)">${n.retornos}</b><small>entradas</small></div>
+        <div><b class="tnum" style="color:var(--accent)">${n.fora}</b><small>fora agora</small></div>
+        <div><b class="tnum" style="color:#7fb89d">${n.embora}</b><small>foram embora</small></div>
+      </div>${porCoord(L)}<div class="prog" style="margin-top:14px"><i style="width:${Math.min(100,pc)}%"></i></div>
+      <div class="muted" style="font-size:11px;margin-top:6px">${pc}% dos presentes deixaram o cartão${n.irr?` · <span style="color:var(--red)">${n.irr} não cumpriram</span>`:""}</div></button>`}).join("")||`<div class="vazio">Ainda não chegou a escala do dia. Ela vem da Headcount a cada 5 minutos.</div>`;
+}
+const FILTROS=[["","Todos"],["nao","Não deixaram"],["aguard","Aguardando"],["dentro","Dentro"],["fora","Fora agora"],["embora","Foram embora"],["falta","Falta / AT / sem marcação"],["troca","Folga trocada"]];
+function passaFiltro(p){const f=S.filtro;if(!f)return true;if(f==="nao")return p.atrasado;if(f==="aguard")return p.st==="nao"&&!p.atrasado;if(f==="falta")return["falta","at","sem"].includes(p.st);if(f==="troca")return p.troca;return p.st===f}
+function linhaPessoa(p,i){
+  const prox=proxima(p),open=abertosPes.has(p.g);
+  const btn=prox==="retirada"?`<button class="bm ac" data-a="retirada" data-g="${esc(p.g)}">← SAÍDA</button>`:`<button class="bm ok" data-a="${prox}" data-g="${esc(p.g)}">→ ENTRADA</button>`;
+  const resumo=[esc(p.g),p.primeira?"Controle de cartão "+hhmm(p.primeira):"sem controle de cartão",p.saidasSvc+" saída(s)",p.retornos+" entrada(s)"].join(" · ");
+  return`<div class="pes ${p.irr.length?"flag":""} ${open?"open":""}" data-pes="${esc(p.g)}">
+    <button type="button" class="tg" data-tl="${esc(p.g)}" title="Ver todas as entradas e saídas">▶</button>
+    <div class="pn"><b>${esc(p.nome||"Groot "+p.g)} ${tagSt(p)}</b><small class="tnum">${resumo}</small></div>
+    <div class="acts">${btn}</div>
+    <div class="tlx"><div class="tl">${p.ms.map(m=>`<div class="${clsMov(p,m)}"><b style="font-weight:500">${nomeMov(p,m)}</b> <span class="mono tnum">${hhmm(m.hora)}</span> <span class="muted">${esc(m.guardiao||"")}</span></div>`).join("")||`<div>Nenhuma entrada ou saída hoje.</div>`}</div></div>
+  </div>`}
+const ORD={nao:0,fora:1,dentro:2,embora:3,falta:4,at:5,sem:6};
+function rHora(){
+  const h=S.hora,L=S.pessoas.filter(p=>p.hora===h),n=numeros(L),sa=saidaDe(h);
+  $("#hTit").textContent=(h==="—"?"Sem horário definido":"Entrada "+h+"h")+" · "+brData(S.date);
+  $("#hInfo").textContent=sa?"Escala "+h+":00 até "+sa+" · saída a partir de "+sa+" conta como “foi embora”":"";
+  const pc=n.presentes?Math.round(n.deixaram/n.presentes*100):0;$("#hBar").style.width=Math.min(100,pc)+"%";
+  $("#hKpis").innerHTML=[kpi(n.escalados,"Escalados","têm que estar","var(--ink)",""),kpi(n.presentes,"Presentes","P + folga trocada","var(--ink)"),
+    kpi(n.deixaram,"Controle de cartão","deixaram o cartão na entrada","var(--green)"),kpi(n.nao,"Não deixaram","passou do horário",n.nao?"var(--red)":"var(--muted)","nao"),
+    kpi(n.saidas,"Saídas","pegaram o cartão","var(--accent)"),kpi(n.retornos,"Entradas","devolveram ao voltar","var(--green)"),
+    kpi(n.fora,"Fora agora","com o cartão","var(--accent)","fora"),kpi(n.embora,"Foram embora","fim da escala","#7fb89d","embora"),
+    kpi(n.faltas,"Falta / AT","na Headcount","var(--muted)","falta"),kpi(n.trocas,"Folga trocada","de FO e vieram","#b48cff","troca")].join("");
+  $("#hFiltro").innerHTML=FILTROS.map(([v,l])=>`<button class="pill ${S.filtro===v?"on":""}" data-f="${v}">${l}</button>`).join("");
+  const b=norm(S.busca);
+  const vis=L.filter(passaFiltro).filter(p=>!b||norm(p.nome).includes(b)||p.g.includes(b));
+  const coords=[...new Set(vis.map(p=>p.coord||"Sem coordenador"))].sort();
+  $("#hLista").innerHTML=coords.map(c=>{const LL=vis.filter(p=>(p.coord||"Sem coordenador")===c).sort((a,b)=>(b.irr.length-a.irr.length)||(ORD[a.st]-ORD[b.st])||a.nome.localeCompare(b.nome));
+    const all=L.filter(p=>(p.coord||"Sem coordenador")===c),nn=numeros(all),k=h+"|"+c,open=abertosCoord.has(k)||!!b||!!S.filtro;
+    return`<div class="grupo ${open?"open":""}"><button type="button" class="gh" data-coord="${esc(k)}"><span class="seta">▶</span><span class="gt"><b>${esc(c)}</b><small>${nn.escalados} escalados · ${nn.presentes} presentes · ${nn.fora} fora agora · ${nn.embora} foram embora</small></span>
+      ${nn.irr?`<span class="gq red">${nn.irr} não cumpriram</span>`:""}<span class="gq">${nn.deixaram} de ${nn.presentes} deixaram o cartão</span></button>
+      <div class="gb">${LL.map(linhaPessoa).join("")}</div></div>`}).join("")||`<div class="vazio">Ninguém neste filtro.</div>`;
+}
+const IR_TIPOS=[["nao","Não deixaram o cartão na entrada"],["fora","Pegaram o cartão e não devolveram"],["semp","Bipou sem presença confirmada"]];
+function irrDoCoord(c){const L=S.pessoas.filter(p=>p.irr.length&&(c==="*"||(p.coord||"SEM COORDENADOR")===c));
+  return IR_TIPOS.map(([k,t])=>[k,t,L.filter(p=>p.irr.some(i=>i.k===k)).sort((a,b)=>(a.hora+"").localeCompare(b.hora+"")||a.nome.localeCompare(b.nome))]).filter(x=>x[2].length)}
+function textoCoord(c){
+  const blocos=irrDoCoord(c).filter(b=>b[0]==="nao");if(!blocos.length)return"";
+  let t=`*CONTROLE LENEL · KN CORDOVIL*\n${brData(S.date)} · ${hhmm(new Date().toISOString())}\n*Coordenador(a): ${c}*\n`;
+  blocos.forEach(([k,tt,L])=>{t+=`\n*Presentes que NÃO deixaram o cartão na entrada (${L.length})*\n`;let h0=null,n=0;
+    L.forEach(p=>{if(p.hora!==h0){h0=p.hora;t+=`_${h0==="—"?"Sem horário":"Entrada "+h0+"h"}_\n`}n++;
+      const i=p.irr.find(x=>x.k===k);t+=`${n}. ${p.nome} (${p.g})${k==="fora"?" · "+i.d:""}\n`})});
+  return t+`\nRegra: deixar o cartão com o guardião ao entrar, pegar só para sair do setor e devolver ao voltar.`}
+function rIrreg(){
+  const cont={};S.pessoas.filter(p=>p.irr.length).forEach(p=>{const c=p.coord||"SEM COORDENADOR";cont[c]=(cont[c]||0)+1});
+  const coords=Object.keys(cont).sort();
+  if(S.irrC&&S.irrC!=="*"&&!cont[S.irrC])S.irrC=null;
+  const sel=S.irrC||coords[0]||"*";S.irrC=sel;
+  const tot=Object.values(cont).reduce((a,b)=>a+b,0);
+  const abas=`<div class="pills" style="margin-bottom:16px">${coords.map(c=>`<button class="pill ${sel===c?"on":""}" data-ic="${esc(c)}">${esc(c)} <span class="cnt">${cont[c]}</span></button>`).join("")}${coords.length>1?`<button class="pill ${sel==="*"?"on":""}" data-ic="*">Todos <span class="cnt">${tot}</span></button>`:""}</div>`;
+  const lista=c=>{const blocos=irrDoCoord(c);if(!blocos.length)return"";
+    return`<div class="glass ircard"><div class="irtop"><div><div class="eyebrow">Coordenador(a)</div><h3>${esc(c)}</h3></div>
+      <div class="row"><button class="btnp" data-copiar="${esc(c)}">Copiar quem não deixou o cartão</button><button class="btns" data-zap="${esc(c)}">Enviar no WhatsApp</button></div></div>
+      ${blocos.map(([k,t,L])=>{let h0=null,n=0;return`<div class="irbloco"><div class="irtit">${t} <span class="gq red">${L.length}</span></div><ol class="irol">${L.map(p=>{const i=p.irr.find(x=>x.k===k);let cab="";if(p.hora!==h0){h0=p.hora;cab=`<li class="irh">${h0==="—"?"Sem horário":"Entrada "+h0+"h"}</li>`}n++;
+        return cab+`<li><span class="irn tnum">${n}.</span><b>${esc(p.nome)}</b> <small class="mono muted">${esc(p.g)}${k!=="nao"?" · "+esc(i.d):""}</small><button class="bm" data-ir-h="${p.hora}" data-ir-g="${esc(p.g)}">ver</button></li>`}).join("")}</ol></div>`}).join("")}</div>`};
+  const corpo=sel==="*"?coords.map(lista).join(""):lista(sel);
+  const trocas=S.pessoas.filter(p=>p.troca);
+  $("#irrList").innerHTML=(tot?abas+corpo:`<div class="box ok" style="font-size:14px"><b>Todo mundo cumprindo a regra.</b> <span class="muted">Ninguém presente sem deixar o cartão e ninguém fora com o cartão além do tempo.</span></div>`)+
+    (trocas.length?`<div class="grupo" style="margin-top:16px"><button type="button" class="gh" data-tog><span class="seta">▶</span><span class="gt"><b>Folga trocada (só sinalização)</b><small>Estavam de FO na Headcount e vieram trabalhar — não é erro</small></span><span class="gq">${trocas.length}</span></button>
+      <div class="gb">${trocas.map(p=>`<div class="pes"><div class="pn"><b>${esc(p.nome)}</b><small>${p.hora}h · ${esc(p.coord)} · ${esc(p.g)}</small></div></div>`).join("")}</div></div>`:"");
+}
+async function copiarTxt(t){try{await navigator.clipboard.writeText(t)}catch(e){const x=document.createElement("textarea");x.value=t;document.body.appendChild(x);x.select();document.execCommand("copy");x.remove()}toast("Lista copiada — é só colar no WhatsApp")}
+let histSel=null;
+async function rHist(){
+  const b=norm($("#hsBusca").value);
+  const achou=b?S.pessoas.filter(p=>norm(p.nome).includes(b)||p.g.includes(b)).slice(0,8):[];
+  const daBase=b&&/^\d{3,}$/.test(b)&&!achou.length?[{g:b,nome:(S.base[b]||{}).nome||"Groot "+b}]:[];
+  $("#hsSugg").innerHTML=achou.concat(daBase).map(p=>`<button data-hs="${esc(p.g)}"><span><b style="font-weight:500">${esc(p.nome)}</b><br><span class="mono muted" style="font-size:12px">${esc(p.g)}${p.hora?" · "+p.hora+"h":""}</span></span></button>`).join("");
+  if(!histSel)return;
+  $("#hsOut").innerHTML=`<div class="sk" style="height:80px"></div>`;
+  try{const h=await sb.hist(histSel);const nome=(S.pessoas.find(p=>p.g===histSel)||{}).nome||(S.base[histSel]||{}).nome||histSel;
+    const dias={};h.movs.forEach(m=>{(dias[m.data]=dias[m.data]||[]).push(m)});
+    const stDia={};h.escala.forEach(e=>stDia[e.data]=e);
+    const ds=[...new Set(Object.keys(dias).concat(h.escala.filter(e=>e.status_hc==="P").map(e=>e.data)))].sort().reverse();
+    let nao=0;ds.forEach(d=>{if(!dias[d]&&stDia[d]&&stDia[d].status_hc==="P")nao++});
+    $("#hsOut").innerHTML=`<div class="display" style="font-size:22px;font-weight:500">${esc(nome)}</div><div class="mono muted tnum" style="font-size:12px;margin:4px 0 16px">${esc(histSel)} · ${Object.keys(dias).length} dia(s) com bipe · ${h.movs.filter(m=>m.tipo==="retirada").length} saída(s) · <span style="color:${nao?"var(--red)":"inherit"}">${nao} dia(s) com P sem deixar o cartão</span></div>
+      <div class="tl">${ds.map(d=>{const L=dias[d]||[],e=stDia[d],hz=e?lerEscala(e.escala):null,sm=hz&&hz.saiMin>hz.entMin?hz.saiMin:null;
+        const nm=(m,i)=>m.tipo==="retirada"?(sm!=null&&minDoDia(m.hora)>=sm?"SAÍDA FINAL":"SAÍDA"):i===0?"CONTROLE DE CARTÃO":"ENTRADA";
+        return`<div><b class="mono">${brData(d)}</b>${e?` <span class="muted">· Headcount ${esc(e.status_hc||"—")}</span>`:""}<div class="muted" style="font-size:13px">${L.length?L.map((m,i)=>nm(m,i)+" "+hhmm(m.hora)).join(" → "):`<span style="color:var(--red)">Tinha P e não deixou o cartão</span>`}</div></div>`}).join("")||`<div class="muted">Sem registros.</div>`}</div>`}
+  catch(e){$("#hsOut").innerHTML=`<div class="vazio">Erro: ${esc(e.message)}</div>`}
+}
+
+/* ================= registrar ENTRADA / SAÍDA ================= */
+async function garantirColab(p){
+  if(p.c)return p.c;
+  const agora=new Date().toISOString();
+  const c={id:S.date+"|"+p.g,data:S.date,groot_id:p.g,nome:p.nome||"GROOT "+p.g,turno:p.h?(+p.h.ent<=8?"AM1":+p.h.ent<=14?"PM1":p.h.ent+"H"):"",
+    coordenador:p.coord||"",ext:"",cartao:"",status:"aguardando",status_hc:p.hc||null,presenca_em:agora,entregue_em:null,ultima_mov_em:null,
+    origem:p.folga?"folga_trocada":p.hc==="P"?"headcount":"guardiao_sem_presenca",atualizado_em:agora};
+  await sb.upsertColab(c,true);S.colabs.push(c);p.c=c;return c;
+}
+async function registrar(g,tipo){
+  let p=S.pessoas.find(x=>x.g===g);
+  if(!p){const b=S.base[g]||{};p={g,nome:b.nome||"GROOT "+g,coord:b.coordenador||"",hc:"",folga:false,h:lerHorario(b.horario),c:null,ms:[]}}
+  if(!cfg.guard){const n=prompt("Nome do guardião ou do posto (só pergunta uma vez):","Guardião");cfg.guard=(n||"Guardião").trim();save()}
+  try{
+    const c=await garantirColab(p);tipo=tipo||proxima(p);
+    const agora=new Date().toISOString();
+    const m={id:uid(),data:S.date,groot_id:g,tipo,hora:agora,guardiao:cfg.guard,obs:"app"};
+    const up={status:tipo==="retirada"?"retirado":"entregue",ultima_mov_em:agora,atualizado_em:agora};if(tipo==="entrega"&&!c.entregue_em)up.entregue_em=agora;
+    Object.assign(c,up);S.movs.push(m);
+    await sb.addMov(m);await sb.upsertColab(Object.assign({},c),false);
+    render();return{p:S.pessoas.find(x=>x.g===g)||p,m};
+  }catch(e){toast("Não foi possível salvar: "+String(e.message).slice(0,100),"err");refresh(true)}
+}
+function mostrarBip(r){if(!r)return;const{p,m}=r,box=$("#bipRes");
+  box.className="bipbox on";box.innerHTML=`<span class="pl ${m.tipo==="retirada"?"t-fora":"t-dentro"}">${m.tipo==="retirada"?"SAÍDA":m.tipo==="entrega"?"CONTROLE DE CARTÃO":"ENTRADA"} · ${hhmm(m.hora)}</span><b class="big">${esc(p.nome)}</b><span class="muted mono" style="font-size:12px">${esc(p.g)} · ${p.hora}h · ${esc(p.coord||"")}</span>`}
+
+/* ================= relatórios ================= */
+function csv(name,head,rows){const s=[head].concat(rows).map(r=>r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(";")).join("\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+s],{type:"text/csv;charset=utf-8"}));a.download=name;a.click()}
+
+/* ================= configurações ================= */
+function abrirCfg(){
+  const bg=document.createElement("div");bg.className="modal-bg";
+  bg.innerHTML=`<div class="modal"><div class="row sb" style="margin-bottom:16px"><h3>Configurações</h3><button class="rbtn" data-x>✕</button></div>
+    <div class="secm"><h4>Regras do controle</h4><p>Tempos usados para apontar quem não cumpriu a regra do cartão.</p>
+      <div class="fg2"><label class="f">Nome deste posto / guardião<input class="campo" id="rGuard" placeholder="Ex.: Guarita 1"></label>
+      <label class="f">Tolerância após o horário de entrada (min)<input class="campo" type="number" id="rEnt" min="0"></label>
+      <label class="f">Tempo máximo fora com o cartão (min)<input class="campo" type="number" id="rRet" min="1"></label></div>
+      <div class="row" style="margin-top:12px"><button class="btnp" id="rSalvar">Salvar</button></div></div></div>`;
+  document.body.appendChild(bg);const g=s=>bg.querySelector(s);
+  bg.addEventListener("click",e=>{if(e.target===bg||e.target.closest("[data-x]"))bg.remove()});
+  g("#rGuard").value=cfg.guard;g("#rEnt").value=cfg.ent;g("#rRet").value=cfg.ret;
+  g("#rSalvar").onclick=()=>{cfg.guard=g("#rGuard").value.trim();cfg.ent=+g("#rEnt").value||40;cfg.ret=+g("#rRet").value||30;save();toast("Salvo.");bg.remove();render()};
+}
+
+/* ================= carregar e atualizar ================= */
+let loading=false;
+async function refresh(silent){
+  if(loading)return;loading=true;
+  try{const d=await sb.load(S.date);S.colabs=d.colabs;S.movs=d.movs;S.escala=d.escala;marcarConexao("on");carregarBase()}
+  catch(e){marcarConexao("off");if(!silent)toast("Erro ao carregar: "+String(e.message).slice(0,120),"err")}
+  loading=false;
+  const ae=document.activeElement;if(silent&&ae&&(ae.id==="hBusca"||ae.id==="hsBusca"||ae.id==="bip")){montar();$("#tabs").innerHTML=tabsHtml();return}
+  render();
+}
+function go(v,h){S.view=v;if(h!=null){S.hora=h;S.filtro=""}try{LS.set("kn-lenel-v2",{v:S.view,h:S.hora})}catch(e){}window.scrollTo({top:0});render();if(v==="hist")rHist()}
+
+/* ================= eventos ================= */
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-v]");if(t){go(t.dataset.v,t.dataset.h);return}
+  const f=e.target.closest("[data-f]");if(f){S.filtro=S.filtro===f.dataset.f&&f.classList.contains("kpi")?"":f.dataset.f;render();return}
+  const a=e.target.closest("[data-a]");if(a){registrar(a.dataset.g,a.dataset.a).then(r=>{if(r)toast(r.p.nome.split(" ")[0]+" · "+(r.m.tipo==="retirada"?"SAÍDA":r.m.tipo==="entrega"?"CONTROLE DE CARTÃO":"ENTRADA")+" às "+hhmm(r.m.hora))});return}
+  const tl=e.target.closest("[data-tl]");if(tl){const g=tl.dataset.tl;abertosPes.has(g)?abertosPes.delete(g):abertosPes.add(g);tl.closest(".pes").classList.toggle("open");return}
+  const co=e.target.closest("[data-coord]");if(co){const k=co.dataset.coord;abertosCoord.has(k)?abertosCoord.delete(k):abertosCoord.add(k);co.parentElement.classList.toggle("open");return}
+  const tg=e.target.closest("[data-tog]");if(tg){tg.parentElement.classList.toggle("open");return}
+  const ic=e.target.closest("[data-ic]");if(ic){S.irrC=ic.dataset.ic;rIrreg();return}
+  const cp=e.target.closest("[data-copiar]");if(cp){const t=textoCoord(cp.dataset.copiar);t?copiarTxt(t):toast("Ninguém deste coordenador está sem deixar o cartão");return}
+  const zp=e.target.closest("[data-zap]");if(zp){const t=textoCoord(zp.dataset.zap);t?window.open("https://wa.me/?text="+encodeURIComponent(t),"_blank"):toast("Ninguém deste coordenador está sem deixar o cartão");return}
+  const ir=e.target.closest("[data-ir-h]");if(ir){const p=S.pessoas.find(x=>x.g===ir.dataset.irG);abertosPes.add(ir.dataset.irG);if(p)abertosCoord.add(p.hora+"|"+(p.coord||"Sem coordenador"));go("hora",ir.dataset.irH);setTimeout(()=>{const el=document.querySelector(`[data-pes="${ir.dataset.irG}"]`);if(el)el.scrollIntoView({block:"center"})},50);return}
+  const hs=e.target.closest("[data-hs]");if(hs){histSel=hs.dataset.hs;$("#hsBusca").value="";rHist();return}
+});
+$("#hAbrir").onclick=()=>{S.pessoas.filter(p=>p.hora===S.hora).forEach(p=>abertosCoord.add(p.hora+"|"+(p.coord||"Sem coordenador")));render()};
+$("#hFechar").onclick=()=>{[...abertosCoord].filter(k=>k.startsWith(S.hora+"|")).forEach(k=>abertosCoord.delete(k));render()};
+$("#hBusca").oninput=e=>{S.busca=e.target.value;rHora()};
+$("#hsBusca").oninput=()=>rHist();
+$("#dt").value=S.date;$("#dt").onchange=e=>{S.date=e.target.value||hoje();refresh()};
+$("#bip").onkeydown=async e=>{if(e.key!=="Enter")return;const raw=e.target.value.trim();if(!raw)return;e.target.value="";
+  const mm=raw.match(/\d{3,}/g),g=/^\d+$/.test(raw)?raw:(mm?mm.sort((a,b)=>b.length-a.length)[0]:"");
+  if(g){mostrarBip(await registrar(g));return}
+  const L=S.pessoas.filter(p=>norm(p.nome).includes(norm(raw)));const box=$("#bipRes");box.className="bipbox on";
+  box.innerHTML=L.length?L.slice(0,6).map(p=>`<div style="padding:4px 0"><b>${esc(p.nome)}</b> ${tagSt(p)}<div class="muted mono" style="font-size:12px">${esc(p.g)} · ${p.hora}h · ${esc(p.coord)} <button class="bm" data-ir-h="${p.hora}" data-ir-g="${esc(p.g)}">ver</button></div></div>`).join(""):"Ninguém encontrado."};
+$("#expPes").onclick=()=>csv("lenel_pessoas_"+S.date+".csv",["Data","Horário","Coordenador","Groot ID","Nome","Headcount","Situação","Controle de cartão","Saídas","Entradas","Foi embora","Não cumpriu"],
+  S.pessoas.slice().sort((a,b)=>(a.hora+"").localeCompare(b.hora+"")||a.coord.localeCompare(b.coord)||a.nome.localeCompare(b.nome)).map(p=>[brData(S.date),p.hora,p.coord,p.g,p.nome,p.hc,p.txt,p.primeira?hhmm(p.primeira):"",p.saidasSvc,p.retornos,p.st==="embora"?hhmm(p.ms[p.ms.length-1].hora):"",p.irr.map(i=>i.t).join(" | ")]));
+$("#expMov").onclick=()=>csv("lenel_entradas_saidas_"+S.date+".csv",["Data","Hora","Horário","Coordenador","Groot ID","Nome","Movimento","Guardião"],
+  S.pessoas.flatMap(p=>p.ms.map(m=>[brData(S.date),hhmm(m.hora),p.hora,p.coord,p.g,p.nome,nomeMov(p,m),m.guardiao||""])).sort((a,b)=>a[1].localeCompare(b[1])));
+function aplicarTema(t){if(t==="claro")document.documentElement.setAttribute("data-tema","claro");else document.documentElement.removeAttribute("data-tema");
+  $("#temaBtn").textContent=t==="claro"?"☾":"☀";try{localStorage.setItem("kn-painel-tema",t)}catch(e){}}
+aplicarTema(document.documentElement.getAttribute("data-tema")==="claro"?"claro":"escuro");
+$("#temaBtn").onclick=()=>aplicarTema(document.documentElement.getAttribute("data-tema")==="claro"?"escuro":"claro");
+$("#cfgBtn").onclick=abrirCfg;$("#knLive").onclick=()=>refresh();
+
+/* ================= início ================= */
+(function(){const v=LS.get("kn-lenel-v2",null);if(v&&["geral","hora","irreg","hist"].includes(v.v)){S.view=v.v;S.hora=v.h||"05"}})();
+render();refresh();
+setInterval(()=>{if(!document.hidden)refresh(true)},5000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh(true)});
+window.addEventListener("online",()=>refresh(true));
+})();
+</script>
+</body></html>
